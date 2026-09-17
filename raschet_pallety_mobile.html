@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Расчёт паллеты">
+<title>Расчёт паллеты</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:#f3f4f6}
+body{min-height:100vh;-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
+button,input,select{font:inherit}
+input,select{appearance:none;-webkit-appearance:none}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f4f6;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:620px;margin:auto;padding:calc(14px + env(safe-area-inset-top)) 14px calc(32px + env(safe-area-inset-bottom))}
+h1{font-size:26px;margin:4px 0 4px}
+.sub{color:#6b7280;font-size:14px;margin-bottom:18px}
+.card{background:#fff;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 2px 12px #0000000d}
+label{display:block;font-weight:650;font-size:14px;margin:0 0 7px}
+.field{margin-bottom:14px}
+input,select{width:100%;height:54px;border:1px solid #d1d5db;border-radius:12px;padding:0 13px;font-size:18px;background:#fff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{height:54px;border:1px solid #d1d5db;background:#fff;border-radius:12px;font-size:18px;font-weight:700}
+.seg button.active{background:#111827;color:#fff;border-color:#111827}
+.calc{width:100%;height:58px;position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:5;box-shadow:0 6px 18px #00000026;border:0;border-radius:14px;background:#111827;color:#fff;font-size:18px;font-weight:750}
+.result{background:#111827;color:#fff;border-radius:18px;padding:18px}
+.result h2{font-size:16px;margin:0 0 14px;color:#d1d5db}
+.big{font-size:34px;font-weight:800;line-height:1.1;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.stat{background:#ffffff14;border-radius:12px;padding:12px}
+.stat b{display:block;font-size:21px;margin-top:3px}
+.stat span{font-size:12px;color:#cbd5e1}
+.note{font-size:12px;color:#6b7280;line-height:1.45;margin-top:10px}
+.warn{background:#fff7ed;color:#9a3412;border-radius:12px;padding:11px;font-size:13px;margin-top:10px}
+@media(max-width:420px){
+      .row{grid-template-columns:1fr}
+      .wrap{padding-top:calc(10px + env(safe-area-inset-top))}
+      h1{font-size:28px}
+      .card,.result{border-radius:16px}
+      .card{padding:14px}
+      .result{padding:16px}
+      .big{font-size:38px}
+      .grid{gap:8px}
+      .stat{min-height:74px}
+    }
+    @media (prefers-reduced-motion:no-preference){
+      .calc{transition:transform .12s ease,box-shadow .12s ease}
+      .calc:active{transform:scale(.985)}
+      .seg button{transition:background .12s ease,color .12s ease}
+    }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Расчёт паллеты</h1>
+  <div class="sub">Веб-версия расчёта из исходного AppSheet-приложения</div>
+
+  <div class="card">
+    <div class="field">
+      <label>Заказ, шт. рулонов</label>
+      <input id="qty" type="number" min="0" step="1" placeholder="Например, 100">
+    </div>
+
+    <div class="field">
+      <label>Заказ, кг. <span style="font-weight:400;color:#9ca3af">(если количество шт. не задано)</span></label>
+      <input id="orderKg" type="number" min="0" step="0.01" placeholder="Например, 500">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Ширина рулона</label>
+        <input id="width" type="number" min="0.01" step="0.01" placeholder="мм">
+      </div>
+      <div class="field">
+        <label>Вес 1 рулона</label>
+        <input id="rollWeight" type="number" min="0.01" step="0.01" placeholder="кг">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Тип паллеты</label>
+      <select id="pallet">
+        <option>Евро (1200х800)</option>
+        <option>Пром (1200х1000)</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Лимит ярусов</label>
+        <input id="tierLimit" type="number" min="1" step="1" placeholder="например, 10">
+      </div>
+      <div class="field">
+        <label>В ряду</label>
+        <div class="seg">
+          <button type="button" data-n="8" class="active">8</button>
+          <button type="button" data-n="6">6</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="calc" id="calc">Рассчитать</button>
+    <button type="button" id="reset" style="width:100%;height:46px;margin-top:10px;border:0;background:transparent;color:#6b7280;font-size:15px;font-weight:650">Очистить поля</button>
+    <div class="note">Логика ярусов и количества паллет перенесена из формул исходного приложения. Тип паллеты пока отображается как параметр, но в найденных формулах напрямую не участвует.</div>
+  </div>
+
+  <div class="result" id="result">
+    <h2>РЕЗУЛЬТАТ</h2>
+    <div class="big" id="main">Введите параметры</div>
+    <div class="grid">
+      <div class="stat"><span>Рулонов всего</span><b id="rQty">—</b></div>
+      <div class="stat"><span>Ярусов</span><b id="rTiers">—</b></div>
+      <div class="stat"><span>Рулонов на паллету</span><b id="rCap">—</b></div>
+      <div class="stat"><span>Всего мест</span><b id="rPallets">—</b></div>
+      <div class="stat"><span>Полных паллет</span><b id="rFull">—</b></div>
+      <div class="stat"><span>Остаток рулонов</span><b id="rRest">—</b></div>
+      <div class="stat"><span>Общий вес нетто</span><b id="rWeight">—</b></div>
+      <div class="stat"><span>Паллеты</span><b id="rType" style="font-size:14px">—</b></div>
+    </div>
+    <div id="warning"></div>
+  </div>
+</div>
+
+<script>
+let perRow = 8;
+document.querySelectorAll('.seg button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.seg button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    perRow = Number(b.dataset.n);
+    calculate();
+  });
+});
+
+const n = id => Number(document.getElementById(id).value);
+const ceil = Math.ceil, floor = Math.floor;
+
+function calculate(){
+  const qtyInput = document.getElementById('qty').value.trim();
+  const kgInput = document.getElementById('orderKg').value.trim();
+  const width = n('width');
+  const rollWeight = n('rollWeight');
+  const limit = n('tierLimit');
+
+  if(!width || !rollWeight || !limit || (!qtyInput && !kgInput)){
+    return;
+  }
+
+  // Exact source formula:
+  // Итого_Роликов = IF(blank/0 Заказ_Шт, ROUND(Заказ_кг / Вес_Рулона_кг), Заказ_Шт)
+  const qty = qtyInput && Number(qtyInput)!==0
+    ? Number(qtyInput)
+    : Math.round(Number(kgInput)/rollWeight);
+
+  // Exact source formula:
+  // Ярусов = MIN(Лимит_Ярусов, FLOOR((1500-150+3)/(Ширина_Роля+3)),
+  //              CEILING(Заказ_Шт/В_Ряду))
+  const tiersByHeight = floor((1500 - 150 + 3)/(width + 3));
+  const tiersByOrder = ceil(qty/perRow);
+  const tiers = Math.min(limit, tiersByHeight, tiersByOrder);
+
+  if(tiers < 1){
+    showInvalid(qty, "При заданной ширине рулона расчёт не даёт ни одного яруса.");
+    return;
+  }
+
+  // Exact source formula:
+  // ИТОГ_Паллет = CEILING(Итого_Роликов / (Лимит_Ярусов * В_Ряду))
+  const capacity = limit * perRow;
+  const pallets = ceil(qty/capacity);
+  const full = floor(qty/capacity);
+  const rest = qty % capacity;
+  const totalWeight = Math.round(qty*rollWeight);
+
+  document.getElementById('main').textContent = `${pallets} ${pallets===1?'паллет':'паллет'}`;
+  document.getElementById('rQty').textContent = qty;
+  document.getElementById('rTiers').textContent = tiers;
+  document.getElementById('rCap').textContent = capacity;
+  document.getElementById('rPallets').textContent = pallets;
+  document.getElementById('rFull').textContent = full;
+  document.getElementById('rRest').textContent = rest;
+  document.getElementById('rWeight').textContent = `${totalWeight} кг`;
+  document.getElementById('rType').textContent = document.getElementById('pallet').value;
+  document.getElementById('warning').innerHTML =
+    rest ? `<div class="warn">Неполная паллета: 1 шт. Остаток: ${rest} рул.</div>` :
+           `<div class="warn" style="background:#ecfdf5;color:#166534">Все паллеты полные.</div>`;
+}
+
+function showInvalid(qty,msg){
+  document.getElementById('main').textContent = 'Проверьте параметры';
+  document.getElementById('rQty').textContent = qty;
+  ['rTiers','rCap','rPallets','rFull','rRest','rWeight','rType'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('warning').innerHTML = `<div class="warn">${msg}</div>`;
+}
+document.getElementById('calc').addEventListener('click',calculate);
+document.getElementById('reset').addEventListener('click',()=>{
+  ['qty','orderKg','width','rollWeight','tierLimit'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pallet').selectedIndex=0;
+  document.querySelectorAll('.seg button').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.seg button[data-n="8"]').classList.add('active');
+  perRow=8;
+  document.getElementById('main').textContent='Введите параметры';
+  ['rQty','rTiers','rCap','rPallets','rFull','rRest','rWeight','rType'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('warning').innerHTML='';
+});
+['qty','orderKg','width','rollWeight','tierLimit','pallet'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calculate);
+  document.getElementById(id).addEventListener('change',calculate);
+});
+</script>
+</body>
+</html>
