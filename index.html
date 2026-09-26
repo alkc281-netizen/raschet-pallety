@@ -4,171 +4,247 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f2f3f5">
 <title>Расчёт паллеты</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f2f3f5;color:#171717;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-main{max-width:560px;margin:auto;padding:18px 14px 32px}h1{font-size:26px;margin:4px 0 18px}
-.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px #0001}
-label{display:block;font-size:14px;font-weight:600;margin:12px 0 6px}
-input{width:100%;font-size:18px;padding:12px;border:1px solid #c9ccd1;border-radius:10px;background:#fff}
-.buttons{display:flex;gap:8px}button{border:0;border-radius:11px;padding:12px 16px;font-size:17px;font-weight:700;background:#e5e7eb}
-button.active{background:#111;color:#fff}.primary{width:100%;margin-top:16px;background:#111;color:#fff}
-.settings{width:100%;background:#e5e7eb}.note{font-size:13px;color:#666;line-height:1.4;margin-top:10px}
-.error{color:#b00020;font-weight:600;margin-top:8px}.resultgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.res{background:#f5f6f7;border-radius:12px;padding:11px}.res span{display:block;font-size:12px;color:#666}
-.res b{display:block;font-size:20px;margin-top:3px}.total{margin-top:12px;background:#111;color:#fff;border-radius:14px;padding:16px}
-.total span{font-size:13px;opacity:.75}.total b{display:block;font-size:32px;margin-top:4px}.break{font-size:13px;line-height:1.4;margin-top:8px;opacity:.85}
-details summary{cursor:pointer;font-size:17px;font-weight:700;list-style:none}details summary::-webkit-details-marker{display:none}
-.small{font-size:12px;color:#777}
-@keyframes resultPulse{0%{transform:scale(1);opacity:.7}55%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
-@keyframes changed{0%{background:#e8f0ff}100%{background:#f5f6f7}}
-@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
-.result-anim{animation:resultPulse .45s ease-out}
-.changed{animation:changed .9s ease-out}
+:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:#f2f3f5;color:#171717;-webkit-text-size-adjust:100%}
+main{max-width:560px;width:100%;margin:0 auto;padding:0 0 calc(26px + env(safe-area-inset-bottom))}
+h1{font-size:27px;line-height:1.2;margin:0;padding:12px 8px 9px}h2{font-size:21px;margin:0}h3{font-size:17px;margin:0}
+.card{background:#fff;border-radius:15px;margin-bottom:8px;padding:12px}
+.tabbar{padding:8px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{font:inherit;cursor:pointer;border:0;touch-action:manipulation}
+.tab,.seg button{background:#e5e7eb;color:#000;border-radius:11px;font-weight:650}
+.tab{min-height:49px;font-size:16px}.tab.active,.seg button.active{background:#111;color:#fff}
+.screen[hidden],.step[hidden],[hidden]{display:none!important}
+.field{margin-top:15px}label,.label{display:block;font-size:14px;font-weight:650;margin:0 0 7px}
+input,select{display:block;width:100%;height:51px;border:1px solid #c9ccd1;border-radius:10px;background:#fff;color:#171717;font:inherit;font-size:18px;padding:10px 12px;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #3684c9;outline-offset:2px}
+.seg{display:flex;gap:8px}.seg button{min-width:64px;min-height:54px;font-size:22px}
+.primary,.back{width:100%;min-height:55px;margin-top:20px;border-radius:12px;font-size:18px;font-weight:700}
+.primary{background:#111;color:#fff}.back{background:#fff;color:#000;margin:0 0 8px;font-size:16px}
+.settings summary{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:19px;font-weight:650;cursor:pointer;list-style:none}
+.settings summary::-webkit-details-marker{display:none}.settings summary::after{content:'⌄';font-size:25px;color:#777}.settings[open] summary::after{content:'⌃'}
+.settings .inner{border-top:1px solid #e2e2e2;margin-top:12px;padding-top:1px}
+.note{font-size:13px;color:#666;line-height:1.5;margin-top:12px}
+.error{background:#f3b3a8;padding:12px;border-radius:11px;color:#000;line-height:1.4;margin-top:14px;font-size:14px}
+.error strong{display:block;margin-bottom:4px}.results{background:#111;color:#fff;border-radius:15px;padding:12px;margin-bottom:8px}
+.results>h2{font-size:21px;border-bottom:1px solid #393939;padding-bottom:8px;margin-bottom:12px}
+.section-head{font-size:13px;font-weight:650;letter-spacing:.025em;color:#ddd;margin:16px 0 9px}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.metric{height:96px;border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;min-width:0;color:#000}
+.metric .m-label{font-size:14px;font-weight:550;line-height:1.2}
+.metric .m-value{font-size:29px;font-weight:750;line-height:1.12;font-variant-numeric:tabular-nums}
+.metric-wide{grid-column:span 2;height:auto;min-height:58px;display:flex;flex-direction:row;align-items:center;gap:8px}
+.m-row{display:flex;align-items:end;gap:4px}.m-row.between{justify-content:space-between}.m-small{font-size:12px;font-weight:600;white-space:nowrap}
+.metric-wide .m-value{flex-shrink:0}.weight,.height-card{border-radius:12px;padding:12px;margin-top:12px}
+.weight{background:#f1d39b;color:#000}.weight-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.weight-row .m-label{font-size:14px}.weight-row strong{font-size:23px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.weight hr{border:0;border-top:1px solid #b8a074;margin:10px 0}
+.weight-diff{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:14px}.weight-diff .v{text-align:right;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+.weight-diff small{display:block;font-size:13px;font-weight:400}
+.height-card{background:#222;color:#fff;padding:9px}.height-card .kicker{font-size:13px}.height-card .height-val{font-size:30px;font-weight:750;margin:3px 0;font-variant-numeric:tabular-nums}
+.height-card hr{border:0;border-top:1px solid #484848;margin:6px 0}.height-note{color:#bbb;font-size:13px}
+.clients{display:grid;grid-template-columns:1fr 1fr 1.65fr;gap:4px;margin-top:12px}
+.client{border-radius:10px;min-height:64px;padding:6px 2px;color:#000;font-size:13px;font-weight:650}
+.client .check{display:block;font-size:14px;margin-top:3px}.client:not(.selected) .check{visibility:hidden}
+.client[data-client="0"]{background:#ffdb35}.client[data-client="1"]{background:#e9a5af}.client[data-client="2"]{background:#8fc7ef}
+.norm{padding:12px;border-radius:12px;color:#000;margin-top:10px}.norm hr{border:0;border-top:1px solid #0005;margin:10px 0}
+.norm .value{font-weight:750;font-size:30px;margin:4px 0}.norm .sm{font-size:13px}
+.meta{background:#252525;border-radius:12px;padding:12px;line-height:1.5;margin-top:8px}
+.meta .code{display:block;font-size:23px;font-weight:700;margin:3px 0}.muted{font-size:13px;color:#bbb}
+@media(max-width:360px){.metric{padding:9px}.metric .m-label{font-size:13px}.metric .m-value{font-size:26px}.weight-row strong{font-size:19px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
 </head>
-<body>
-<main>
+<body><main>
 <h1>Расчёт паллеты</h1>
-
-<div class="card">
-<label>Количество рулонов</label>
-<input id="qty" type="number" min="0" step="1" placeholder="Количество рулонов">
-
-<label>Вес заказа, кг</label>
-<input id="orderKg" type="number" min="0" step="0.01" placeholder="Если количество рулонов не задано">
-
-<label>Ширина рулона, мм</label>
-<input id="width" type="number" min="1" step="1" placeholder="Ширина рулона">
-
-<label>Вес рулона, кг</label>
-<input id="rollWeight" type="number" min="0" step="0.01" placeholder="Вес одного рулона">
-
-<label>Лимит ярусов</label>
-<input id="limit" type="number" min="1" step="1" value="12">
-
-<label>В ряду</label>
-<div class="buttons">
-<button id="b8" class="active" type="button">8</button>
-<button id="b6" type="button">6</button>
+<nav class="card tabbar tabs" aria-label="Режим калькулятора"><button type="button" class="tab active" id="tab-normal">Обычный</button><button type="button" class="tab" id="tab-client">По клиенту</button></nav>
+<section class="screen" id="normal-screen">
+<div class="step" id="normal-params">
+<form class="card" id="normal-form" novalidate><h2>Обычный калькулятор</h2>
+<div class="field"><label for="qty">Количество рулонов</label><input id="qty" type="number" min="0" step="1" placeholder="Количество рулонов" value="186"></div>
+<div class="field"><label for="orderKg">Вес заказа, кг</label><input id="orderKg" type="number" min="0" step="any" placeholder="Если количество рулонов не задано" value="3952"></div>
+<div class="field"><label for="width">Ширина рулона, мм</label><input id="width" type="number" step="any" value="350"></div>
+<div class="field"><label for="rollWeight">Вес рулона, кг</label><input id="rollWeight" type="number" min="0" step="any" value="21.15"></div>
+<div class="field"><label for="limit">Лимит ярусов</label><input id="limit" type="number" min="1" step="1" value="12"></div>
+<div class="field"><span class="label">В ряду</span><div class="seg"><button type="button" id="b8" aria-pressed="false">8</button><button type="button" id="b6" class="active" aria-pressed="true">6</button></div></div>
+<div class="error" id="normal-error" role="alert" hidden></div><button class="primary" type="submit">Рассчитать →</button></form>
+<details class="card settings" id="settings"><summary>⚙️ Настройки упаковки</summary><div class="inner">
+<div class="field"><label for="base">Высота основания паллеты, мм</label><input id="base" type="number" min="0" step="any" value="150"></div>
+<div class="field"><label for="solid">Толщина сплошного листа, мм</label><input id="solid" type="number" min="0" step="any" value="3"></div>
+<div class="field"><label for="holes">Толщина листа с отверстиями, мм</label><input id="holes" type="number" min="0" step="any" value="3"></div>
+<div class="field"><label for="pad">Толщина круглой прокладки, мм</label><input id="pad" type="number" min="0" step="any" value="3"></div>
+<div class="field"><label for="max">Максимальная высота паллеты, мм</label><input id="max" type="number" min="1" step="any" value="1500"></div>
+<p class="note">Для высоты учитываются три слоя круглых прокладок.</p></div></details>
 </div>
-
-<button class="primary" type="button" onclick="calculate()">Рассчитать</button>
-<div id="error" class="error"></div>
-</div>
-
-<div class="card">
-<details>
-<summary>⚙️ Настройки упаковки</summary>
-<label>Высота основания паллеты, мм</label>
-<input id="palletHeight" type="number" min="0" step="1" value="150">
-
-<label>Толщина сплошного листа, мм</label>
-<input id="solid" type="number" min="0" step="0.1" value="3">
-
-<label>Толщина листа с отверстиями, мм</label>
-<input id="holes" type="number" min="0" step="0.1" value="3">
-
-<label>Толщина круглой прокладки, мм</label>
-<input id="roundPad" type="number" min="0" step="0.1" value="3">
-
-<label>Максимальная высота паллеты, мм</label>
-<input id="maxHeight" type="number" min="1" step="1" value="1500">
-
-<div class="note">Количество круглых прокладок не рассчитывается. Для высоты учитываются три слоя: под первым рядом, под вторым рядом и под верхним рядом.</div>
-</details>
-</div>
-
-<div class="card">
-<h2 style="font-size:19px;margin:0 0 10px">Результат</h2>
-<div class="resultgrid">
-<div class="res"><span>Рулонов</span><b id="rQty">—</b></div>
-<div class="res"><span>Ярусов на паллету</span><b id="rTiers">—</b></div>
-<div class="res"><span>Рулонов на паллету</span><b id="rCap">—</b></div>
-<div class="res"><span>Количество паллет</span><b id="rPallets">—</b></div>
-<div class="res"><span>Полных паллет</span><b id="rFull">—</b></div>
-<div class="res"><span>Неполная паллета</span><b id="rRest">—</b></div>
-<div class="res"><span>Общий вес</span><b id="rWeight">—</b></div>
-</div>
-<div class="total">
-<span>ИТОГОВАЯ ВЫСОТА ПАЛЛЕТЫ</span>
-<b id="rHeight">—</b>
-<div class="break" id="rBreak"></div>
-</div>
-</div>
+<div class="step" id="normal-result" hidden><section class="results"><h2>Результат</h2><div id="normal-result-body"></div></section><button class="back" id="normal-back">← Изменить параметры</button></div>
+</section>
+<section class="screen" id="client-screen" hidden><div class="step" id="client-params">
+<div class="card"><h2>Калькулятор по клиенту</h2><p class="note">Проверка нормы упаковки · паллета 800 × 1200 мм</p></div>
+<div class="card"><h3>Клиент</h3><div class="clients">
+<button class="client selected" type="button" data-client="0">Ижора<span class="check">✓</span></button>
+<button class="client" type="button" data-client="1">Кубань<span class="check">✓</span></button>
+<button class="client" type="button" data-client="2">Казахстан<span class="check">✓</span></button>
+</div></div>
+<form id="client-form" novalidate>
+<div class="card"><h3>Параметры рулона</h3>
+<div class="field"><label for="film">Марка плёнки</label><select id="film"><option>TSHD</option><option>TSHW</option><option>TSHB</option></select></div>
+<div class="field"><label for="cWidth">Ширина рулона, мм</label><input id="cWidth" type="number" step="any" value="130"></div>
+<div class="field"><span class="label">Диаметр шпули, мм</span><div class="seg" id="core-seg"><button type="button" data-core="76" class="active" aria-pressed="true">76</button><button type="button" data-core="120" aria-pressed="false">120</button><button type="button" data-core="152" aria-pressed="false">152</button></div></div>
+<div class="field"><label for="cLength">Длина плёнки, м</label><input id="cLength" type="number" step="any" value="3800"></div>
+<div class="field"><label for="cThickness">Толщина плёнки, мкм</label><input id="cThickness" type="number" step="any" value="18"></div></div>
+<div class="card"><h3>Заказ</h3>
+<div class="field"><label for="cQty">Количество рулонов</label><input id="cQty" type="number" min="0" step="1" placeholder="Если известно точное количество"></div>
+<div class="field"><label for="cKg">Вес заказа, кг</label><input id="cKg" type="number" min="0" step="any" placeholder="Если количество не указано"></div>
+<div class="field"><label for="cWeight">Вес рулона, кг</label><input id="cWeight" type="number" min="0" step="any" placeholder="Вес одного рулона"></div>
+<p class="note">Если количество рулонов не задано, оно рассчитывается из веса заказа с округлением вверх до полного ряда. Недовыпуск не допускается, перевыполнение — не более +5%.</p>
+<div class="error" id="client-error" role="alert" hidden></div>
+<button class="primary" type="submit">Проверить →</button></div></form></div>
+<div class="step" id="client-result" hidden><section class="results"><h2>Результат проверки</h2><div id="client-result-body"></div></section><button class="back" id="client-back">← Изменить параметры</button></div>
+</section>
 </main>
-
 <script>
-let perRow=8;
+'use strict';
 const $=id=>document.getElementById(id);
-function n(id){return parseFloat($(id).value.replace(',','.'))||0}
-
-function animateNumber(el,target,suffix='',decimals=0){
-  const end=Number(target);
-  if(!Number.isFinite(end)){el.textContent='—';return}
-  const startText=el.dataset.value;
-  const start=Number.isFinite(Number(startText))?Number(startText):0;
-  const duration=500;
-  const t0=performance.now();
-  function frame(now){
-    const p=Math.min(1,(now-t0)/duration);
-    const eased=1-Math.pow(1-p,3);
-    const value=start+(end-start)*eased;
-    el.textContent=value.toFixed(decimals)+suffix;
-    if(p<1) requestAnimationFrame(frame);
-    else {el.dataset.value=String(end);el.classList.remove('result-anim');void el.offsetWidth;el.classList.add('result-anim')}
-  }
-  requestAnimationFrame(frame);
+const raw=[['46.W582','TSHD',18,130,3800,76,315,8,80,8,56,8,80],
+['46.K363','TSHD',18,118,3800,76,315,8,88,8,64,8,88],
+['46.Z011','TSHD',18,119,3800,76,315,8,88,8,64,8,88],
+['46.J554','TSHD',18,236,3600,120,324,6,30,6,24,6,30],
+['46.J555','TSHD',18,114,3800,76,315,8,88,8,72,8,88],
+['46.Z9C7','TSHD',18,117,3800,76,315,8,88,8,64,8,88],
+['46.J556','TSHD',18,122,3800,76,315,8,80,8,64,8,80],
+['46.J570','TSHD',18,132,3800,76,315,8,80,8,56,8,80],
+['46.J567','TSHD',18,126,3300,76,296,8,80,8,64,8,80],
+['46.X735','TSHD',18,105,3300,76,296,8,96,8,72,8,96],
+['46.J569','TSHD',18,108,3300,76,296,8,96,8,72,8,96],
+['46.T808','TSHD',18,236,4000,120,338,6,30,6,24,6,30],
+['46.R853','TSHD',18,252,3300,120,312,8,40,8,24,8,40],
+['46.K524','TSHD',18,228,3800,120,331,6,30,6,24,6,30],
+['46.K618','TSHD',20,118,3800,76,331,6,66,6,48,6,66],
+['46.K619','TSHD',20,114,3800,76,331,6,66,6,48,6,66],
+['46.K620','TSHD',20,105,3300,76,310,8,72,8,72,8,72],
+['46.K621','TSHD',20,108,3300,76,310,8,72,8,72,8,72],
+['46.M428','TSHD',20,118,3300,76,310,8,88,8,64,8,88],
+['46.N488','TSHD',20,120,3300,76,310,8,88,8,64,8,88],
+['46.M928','TSHD',20,122,3300,76,310,8,80,8,64,8,80],
+['46.P334','TSHD',20,128,3800,76,331,6,60,6,48,6,60],
+['46.X234','TSHD',20,130,3800,76,331,6,60,6,42,6,60],
+['46.Z9C8','TSHW',25,345,3000,76,329,6,18,6,12,6,18],
+['46.N213','TSHW',25,345,3000,152,358,6,18,6,12,6,18],
+['46.N214','TSHW',25,310,3000,152,358,6,24,6,18,6,24],
+['46.Z9V9','TSHW',25,310,3000,76,329,6,24,6,18,6,24],
+['46.N216','TSHW',25,352,1500,76,242,14,42,14,28,14,42],
+['46.N217','TSHW',25,340,3000,76,329,6,18,6,12,6,18],
+['46.N220','TSHW',25,335,3000,76,329,6,18,6,18,6,18],
+['46.N215','TSHW',25,326,3000,76,329,6,24,6,18,6,24],
+['46.N221','TSHW',25,214,3000,152,358,6,36,6,24,6,36],
+['46.N222','TSHW',25,275,3000,152,358,6,24,6,18,6,24],
+['46.N219','TSHW',25,330,3000,76,329,6,24,6,18,6,24],
+['46.Y842','TSHW',25,312,3000,152,358,6,24,6,18,6,24],
+['46.N218','TSHW',25,312,3000,76,329,6,24,6,18,6,24],
+['46.R063','TSHW',25,331,3000,152,358,6,24,6,18,6,24],
+['46.R062','TSHW',25,255,3000,152,358,6,24,6,24,6,24],
+['46.Z060','TSHW',23,345,3000,152,346,6,18,6,12,6,18],
+['46.ZA18','TSHW',23,312,3000,152,346,6,24,6,18,6,24],
+['46.Z061','TSHW',23,310,3000,152,346,6,24,6,18,6,24],
+['46.Z064','TSHW',23,335,3300,76,331,6,18,6,18,6,18],
+['46.Z065','TSHW',23,255,3000,152,346,6,24,6,24,6,24],
+['46.Z066','TSHW',23,214,3000,152,346,6,36,6,24,6,36],
+['46.ZATD','TSHB',25,228,2550,152,336,6,30,6,24,6,30],
+['46.ZATC','TSHB',25,74,2550,76,305,8,96,8,96,8,96]];
+const clients=['Ижора','Кубань','Казахстан'];
+const clientColors=['#ffdb35','#e9a5af','#8fc7ef'];
+let mode='normal',perRow=6,client=0,core=76;
+const fmt=(v,d=0)=>Number(v).toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
+const n=v=>String(v??'').trim()===''?NaN:Number(String(v).replace(',','.'));
+const val=id=>n($(id).value);
+const filled=id=>$(id).value.trim()!=='';
+const pluralTiers=t=>t===1?'ярус':t>=2&&t<=4?'яруса':'ярусов';
+function showError(id,message){$(id).textContent=message;$(id).hidden=false}
+function clearError(id){$(id).textContent='';$(id).hidden=true}
+function switchMode(next){mode=next;$('normal-screen').hidden=next!=='normal';$('client-screen').hidden=next!=='client';$('tab-normal').classList.toggle('active',next==='normal');$('tab-client').classList.toggle('active',next==='client');window.scrollTo(0,0)}
+function step(mode,result){$(mode+'-params').hidden=result;$(mode+'-result').hidden=!result;window.scrollTo(0,0)}
+$('tab-normal').addEventListener('click',()=>switchMode('normal'));
+$('tab-client').addEventListener('click',()=>switchMode('client'));
+$('normal-back').addEventListener('click',()=>step('normal',false));
+$('client-back').addEventListener('click',()=>step('client',false));
+for(const p of [6,8])$('b'+p).addEventListener('click',()=>{perRow=p;for(const k of [6,8]){$('b'+k).classList.toggle('active',k===p);$('b'+k).setAttribute('aria-pressed',String(k===p))}clearError('normal-error')});
+document.querySelectorAll('#normal-params input').forEach(x=>x.addEventListener('input',()=>clearError('normal-error')));
+for(const b of document.querySelectorAll('[data-client]'))b.addEventListener('click',()=>{client=Number(b.dataset.client);for(const a of document.querySelectorAll('[data-client]'))a.classList.toggle('selected',a===b);clearError('client-error')});
+for(const b of document.querySelectorAll('[data-core]'))b.addEventListener('click',()=>{core=Number(b.dataset.core);for(const a of document.querySelectorAll('[data-core]')){const yes=a===b;a.classList.toggle('active',yes);a.setAttribute('aria-pressed',String(yes))}clearError('client-error')});
+document.querySelectorAll('#client-form input,#client-form select').forEach(x=>x.addEventListener('input',()=>clearError('client-error')));
+function calc(qty,per,limit,w,base,solid,holes,pad,max,rollWeight,orderKg){
+ const maxTiers=Math.floor((max-base-holes-2*solid-3*pad)/(w+holes));
+ const tiers=Math.min(limit,Math.max(0,maxTiers),Math.ceil(qty/per));
+ if(tiers<1)return {error:'При заданной высоте даже один ярус не помещается.'};
+ const capacity=tiers*per,full=Math.floor(qty/capacity),rest=qty%capacity,pallets=Math.ceil(qty/capacity);
+ const partialTiers=rest>0?Math.ceil(rest/per):0;
+ const height=base+tiers*w+(tiers+1)*holes+2*solid+3*pad;
+ const partialHeight=rest>0?base+partialTiers*w+(partialTiers+1)*holes+2*solid+3*pad:0;
+ return {qty,tiers,capacity,full,rest,pallets,partialTiers,height,partialHeight,weight:rollWeight!==null?qty*rollWeight:null,orderKg};
 }
-
-function setAnimated(id,value,suffix='',decimals=0){
-  const el=$(id);
-  const old=el.dataset.display||'';
-  const display=Number(value).toFixed(decimals)+suffix;
-  animateNumber(el,value,suffix,decimals);
-  el.dataset.display=display;
-  if(old && old!==display){
-    el.classList.remove('changed');void el.offsetWidth;el.classList.add('changed');
-  }
+function weightHtml(r){if(r.weight===null)return '';
+ let diff='';
+ if(r.orderKg!==null){let delta=Math.round((r.weight-r.orderKg)*10)/10;
+  const sign=delta>0?'+':delta<0?'−':'';
+  const kg=sign+fmt(Math.abs(delta),Number.isInteger(delta)?0:1)+' кг';
+  const pct=delta>0?'<small>+'+fmt((r.weight-r.orderKg)/r.orderKg*100,2)+'%</small>':'';
+  diff='<hr><div class="weight-diff"><span>Разница с весом заказа</span><span class="v">'+kg+pct+'</span></div>';
+ }
+ return '<div class="weight"><div class="weight-row"><span class="m-label">Общий вес</span><strong>'+fmt(r.weight,1)+' кг</strong></div>'+diff+'</div>';
 }
-
-function calculate(){
- $('error').textContent='';
- const q0=n('qty'),kg=n('orderKg'),rw=n('rollWeight'),width=n('width'),limit=Math.floor(n('limit'));
- const ph=n('palletHeight'),solid=n('solid'),holes=n('holes'),pad=n('roundPad'),maxH=n('maxHeight');
- let qty=q0>0?Math.round(q0):(kg>0&&rw>0?Math.round(kg/rw):0);
- if(qty<=0){$('error').textContent='Укажите количество рулонов или вес заказа + вес рулона.';return}
- if(width<=0||rw<=0){$('error').textContent='Укажите ширину и вес рулона.';return}
- if(limit<1||ph<0||solid<0||holes<0||pad<0||maxH<=0){$('error').textContent='Проверьте настройки упаковки.';return}
-
- const rollHeight=width;
- const fixed=holes+2*solid+3*pad;
- const maxByHeight=Math.floor((maxH-ph-fixed)/(rollHeight+holes));
- const needed=Math.ceil(qty/perRow);
- const tiers=Math.min(limit,Math.max(0,maxByHeight),needed);
- if(tiers<1){$('error').textContent='При заданных настройках ярус не помещается в максимальную высоту паллеты.';return}
-
- const capacity=tiers*perRow;
- const pallets=Math.ceil(qty/capacity);
- const full=Math.floor(qty/capacity);
- const rest=qty%capacity;
- const holeSheets=tiers+1;
- const height=ph+tiers*rollHeight+holeSheets*holes+2*solid+3*pad;
-
- setAnimated('rQty',qty);
- setAnimated('rTiers',tiers);
- setAnimated('rCap',capacity);
- setAnimated('rPallets',pallets);
- setAnimated('rFull',full);
- setAnimated('rRest',rest);
- setAnimated('rWeight',qty*rw,' кг',1);
- setAnimated('rHeight',Math.round(height),' мм',0);
-
- $('rBreak').textContent=ph+' + '+tiers+'×'+rollHeight+' + '+holeSheets+'×'+holes+' + 2×'+solid+' + 3×'+pad+' = '+Math.round(height)+' мм';
+function resultHtml(r,isClient){
+ const metric=(name,value,color,extra='')=>'<div class="metric" style="background:'+color+'"><span class="m-label">'+name+'</span><span class="m-value">'+value+'</span>'+extra+'</div>';
+ const full='<div class="section-head">ПОЛНЫЕ ПАЛЛЕТЫ</div><div class="metrics">'
+  +metric('Полных паллет',fmt(r.full),'#78D49B')
+  +'<div class="metric" style="background:#A9DEC9"><span class="m-label">Рулонов</span><div class="m-row"><span class="m-value">'+fmt(r.capacity)+'</span><span class="m-small">на каждой</span></div></div>'
+  +'<div class="metric metric-wide" style="background:#A8CEEE"><span class="m-label">Ярусов на каждой полной паллете</span><span class="m-value">'+fmt(r.tiers)+'</span></div></div>';
+ const partial=r.rest>0?'<div class="section-head">НЕПОЛНАЯ ПАЛЛЕТА</div><div class="metrics">'
+  +'<div class="metric" style="background:#F3B3A8"><span class="m-label">Неполных паллет</span><div class="m-row between"><span class="m-value">1</span><span class="m-small">'+r.partialTiers+' '+pluralTiers(r.partialTiers)+'</span></div></div>'
+  +metric('Рулонов на ней',fmt(r.rest),'#F3B3A8')+'</div>':'';
+ const label=isClient&&r.full===0?'ВЫСОТА НЕПОЛНОЙ ПАЛЛЕТЫ':'ВЫСОТА ПОЛНОЙ ПАЛЛЕТЫ';
+ const primaryHeight=isClient&&r.full===0?r.partialHeight:r.height;
+ const secondary=r.rest>0&&r.full>0?'<hr><div class="kicker">ВЫСОТА НЕПОЛНОЙ ПАЛЛЕТЫ</div><div class="height-val">'+fmt(Math.round(r.partialHeight))+' мм</div><div class="height-note">'+r.rest+' рулонов · '+r.partialTiers+' '+pluralTiers(r.partialTiers)+'</div>':'';
+ return '<div class="section-head">ВЕСЬ ЗАКАЗ</div><div class="metrics">'
+  +metric('Всего рулонов',fmt(r.qty),'#C9D3E1')
+  +metric('Всего паллет',fmt(r.pallets),'#9DDED9')+'</div>'
+  +full+partial+weightHtml(r)
+  +'<div class="height-card"><div class="kicker">'+label+'</div><div class="height-val">'+fmt(Math.round(primaryHeight))+' мм</div>'+secondary+'</div>';
 }
-
-$('b8').onclick=()=>{perRow=8;$('b8').classList.add('active');$('b6').classList.remove('active');calculate()};
-$('b6').onclick=()=>{perRow=6;$('b6').classList.add('active');$('b8').classList.remove('active');calculate()};
-</script>
-</body>
-</html>
+$('normal-form').addEventListener('submit',e=>{e.preventDefault();clearError('normal-error');
+ const qi=filled('qty')?val('qty'):0,kg=filled('orderKg')?val('orderKg'):0,rw=val('rollWeight'),w=val('width'),limit=val('limit'),base=val('base'),solid=val('solid'),holes=val('holes'),pad=val('pad'),max=val('max'),hasOrder=filled('orderKg');
+ const qty=qi>0?qi:kg>0&&rw>0?Math.ceil(kg/(rw*perRow)-1e-12)*perRow:0;
+ let err='';
+ if(qi<0||!Number.isFinite(qi)||qi>0&&!Number.isInteger(qi))err='Проверь количество рулонов.';
+ else if(hasOrder&&(!Number.isFinite(kg)||kg<=0))err='Вес заказа должен быть больше нуля.';
+ else if(!Number.isSafeInteger(qty)||qty<=0)err='Укажи количество рулонов или вес заказа и вес рулона.';
+ else if(!Number.isFinite(w)||w<=0||!Number.isFinite(rw)||rw<=0)err='Укажи ширину и вес рулона.';
+ else if(!Number.isInteger(limit)||limit<1||![base,solid,holes,pad,max].every(Number.isFinite)||[base,solid,holes,pad].some(v=>v<0)||max<=0)err='Проверь настройки упаковки.';
+ if(err){showError('normal-error',err);return}
+ const result=calc(qty,perRow,limit,w,base,solid,holes,pad,max,rw,hasOrder?kg:null);
+ if(result.error){showError('normal-error',result.error);return}
+ $('normal-result-body').innerHTML=resultHtml(result,false);step('normal',true);
+});
+$('client-form').addEventListener('submit',e=>{e.preventDefault();clearError('client-error');
+ const film=$('film').value,w=val('cWidth'),length=val('cLength'),th=val('cThickness'),q=val('cQty'),kg=val('cKg'),rw=val('cWeight'),hasQ=filled('cQty'),hasKg=filled('cKg'),hasRw=filled('cWeight');
+ if(!film||![w,length,th,core].every(v=>Number.isFinite(v)&&v>0)){showError('client-error','Заполни все параметры рулона.');return}
+ if(hasQ&&(!Number.isSafeInteger(q)||q<=0)||hasKg&&(!Number.isFinite(kg)||kg<=0)||hasRw&&(!Number.isFinite(rw)||rw<=0)){showError('client-error','Проверь количество рулонов и вес заказа.');return}
+ if(hasKg&&!hasRw){showError('client-error','Для проверки веса заказа укажи вес одного рулона.');return}
+ const matches=raw.filter(a=>a[1]===film&&a[2]===th&&a[3]===w&&a[4]===length&&a[5]===core),body=$('client-result-body');
+ if(matches.length!==1){body.innerHTML='<div class="error" style="margin-top:0"><strong>'+(matches.length>1?'Найдено несколько изделий':'Совпадение не найдено')+'</strong>'+(matches.length>1?matches.map(a=>a[0]).join(', '):'В тестовой таблице нет строки с таким сочетанием параметров.')+'</div>';step('client',true);return}
+ const a=matches[0],idx=7+client*2,per=a[idx],capacity=a[idx+1],tiers=capacity/per;
+ let html='<div class="meta"><span class="muted">СТРОКА НАЙДЕНА · КОД СПРАВОЧНО</span><span class="code">'+a[0]+'</span>'+a[1]+' · '+a[2]+' мкм · '+a[3]+' мм<br>Длина '+a[4]+' м · шпуля '+a[5]+' мм<br><span class="muted">Наружный диаметр по таблице: '+a[6]+' мм</span></div>';
+ html+='<div class="norm" style="background:'+clientColors[client]+'"><h3>'+clients[client]+' · норма упаковки</h3><hr><span class="sm">Рулонов в ярусе</span><div class="value">'+per+'</div><hr><span class="sm">Рулонов на паллете</span><div class="value">'+capacity+'</div><hr><span class="sm">Ярусов по норме</span><div class="value">'+fmt(tiers)+'</div></div>';
+ if(hasQ||hasKg&&hasRw){const qty=hasQ?q:Math.ceil(kg/(rw*per)-1e-12)*per;
+  if(!Number.isSafeInteger(qty)||qty<=0){showError('client-error','Расчёт по весу дал некорректное количество рулонов.');return}
+  const base=val('base'),solid=val('solid'),holes=val('holes'),pad=val('pad'),max=val('max');
+  const r=calc(qty,per,tiers,w,base,solid,holes,pad,Infinity,hasRw?rw:null,hasKg?kg:null);
+  // В режиме клиента число ярусов задаёт таблица; ограничение максимальной высоты не включаем.
+  if(r.error){showError('client-error',r.error);return}
+  html+='<hr style="border:0;border-top:1px solid #393939;margin:16px 0"><h3>Расчёт заказа</h3>'+resultHtml(r,true);
+ }else html+='<div class="meta" style="margin-top:12px">Норма упаковки найдена. Чтобы рассчитать заказ целиком, вернись к параметрам и заполни количество рулонов или вес заказа и вес рулона.</div>';
+ body.innerHTML=html;step('client',true);
+});
+</script></body></html>
